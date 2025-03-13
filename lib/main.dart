@@ -82,12 +82,20 @@ class _MyAppState extends State<MyApp> {
             },
             initialOptions: InAppWebViewGroupOptions(
               crossPlatform: InAppWebViewOptions(
+                cacheEnabled: true,
+                clearCache: false,  
                 javaScriptEnabled: true,
                 useOnDownloadStart: true,
                 userAgent: "random",
                 transparentBackground: true,
               ),
-              android: AndroidInAppWebViewOptions(useHybridComposition: true),
+              android: AndroidInAppWebViewOptions(
+                useHybridComposition: true, 
+                domStorageEnabled: true, 
+                databaseEnabled: true,
+                cacheMode: AndroidCacheMode.LOAD_DEFAULT,
+                forceDark: AndroidForceDark.FORCE_DARK_ON,
+                ),
             ),
             pullToRefreshController: pullToRefreshController, // Tambahkan ini
             onLoadStop: (controller, url) {
