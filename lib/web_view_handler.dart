@@ -3,6 +3,8 @@ import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 
 class WebViewHandler {
   static InAppWebViewController? webViewController;
+  // Cache untuk script JS
+  static String? _cachedJsContent;
 
   static void setWebViewController(InAppWebViewController controller) {
     webViewController = controller;
@@ -12,21 +14,37 @@ class WebViewHandler {
     if (webViewController == null) return;
     
     try {
-      String jsContent = await rootBundle.loadString('assets/js/script.js');
-      await webViewController!.evaluateJavascript(source: jsContent);
+      _cachedJsContent ??= await rootBundle.loadString('assets/js/script.js');
+      await webViewController!.evaluateJavascript(source: _cachedJsContent!);
     } catch (e) {
       print('Error injecting JavaScript: $e');
     }
   }
 
   static Future<bool> handleBackButton() async {
-    if (webViewController != null) {
-      bool canGoBack = await webViewController!.canGoBack();
+    final controller = webViewController;
+    if (controller != null) {
+      final canGoBack = await controller.canGoBack();
       if (canGoBack) {
-        webViewController!.goBack();
-        return false;
+        controller.goBack();
+        return false; // Cegah aplikasi keluar
       }
     }
-    return true;
+    return true; // Jika tidak bisa back, keluar dari aplikasi
+  }
+
+  static void clearResources() {
+    _cachedJsContent = null;
+    webViewController = null;
+  }
+
+  static Future<void> preloadJavaScript() async {
+    if (_cachedJsContent == null) {
+      try {
+        _cachedJsContent = await rootBundle.loadString('assets/js/script.js');
+      } catch (e) {
+        print('Error preloading JavaScript: $e');
+      }
+    }
   }
 }
