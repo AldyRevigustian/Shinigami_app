@@ -73,7 +73,7 @@ observer.observe(document.body, { childList: true, subtree: true });
 
 function checkScroll() {
   if (window.location.pathname.startsWith('/chapter/')) {
-    if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight + 50) {
+    if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight + 70) {
       if (!document.getElementById('loading-indicator')) {
         let loader = document.createElement('div');
         loader.id = 'loading-indicator';
@@ -92,7 +92,7 @@ function checkScroll() {
         setTimeout(() => {
           loader.remove();
           goToNextChapter();
-        }, 2000);
+        }, 1100);
       }
     }
   }
