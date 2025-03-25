@@ -72,7 +72,7 @@ class _WebViewPageState extends State<WebViewPage> {
     super.initState();
 
     pullToRefreshController = PullToRefreshController(
-      options: PullToRefreshOptions(
+      settings: PullToRefreshSettings(
         color: Colors.white,
         backgroundColor: backgroundColor,
       ),
@@ -192,8 +192,16 @@ class _WebViewPageState extends State<WebViewPage> {
       );
     }
 
-    return WillPopScope(
-      onWillPop: WebViewHandler.handleBackButton,
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return;
+
+        final shouldPop = await WebViewHandler.handleBackButton();
+        if (shouldPop && context.mounted) {
+          Navigator.of(context).pop();
+        }
+      },
       child: Scaffold(
         backgroundColor: backgroundColor,
         body: GestureDetector(
@@ -207,7 +215,7 @@ class _WebViewPageState extends State<WebViewPage> {
                   child: FloatingActionButton(
                     elevation: 2,
                     onPressed: _showUrlEditDialog,
-                    backgroundColor: Color.fromRGBO(39, 39, 42, 1),
+                    backgroundColor: const Color.fromRGBO(39, 39, 42, 1),
                     child: const Icon(Icons.edit, color: Colors.white),
                   ),
                 )
@@ -220,7 +228,7 @@ class _WebViewPageState extends State<WebViewPage> {
     return InAppWebView(
       initialUrlRequest: URLRequest(url: WebUri(currentUrl!)),
       onWebViewCreated: WebViewHandler.setWebViewController,
-      initialOptions: _getWebViewOptions(),
+      initialSettings: _getWebViewSettings(),
       pullToRefreshController: pullToRefreshController,
       onLoadStop: (controller, url) {
         pullToRefreshController.endRefreshing();
@@ -231,39 +239,34 @@ class _WebViewPageState extends State<WebViewPage> {
     );
   }
 
-  InAppWebViewGroupOptions _getWebViewOptions() {
-    return InAppWebViewGroupOptions(
-      crossPlatform: InAppWebViewOptions(
-        cacheEnabled: true,
-        clearCache: false,
-        javaScriptEnabled: true,
-        useOnDownloadStart: true,
-        userAgent: "random",
-        transparentBackground: true,
+  InAppWebViewSettings _getWebViewSettings() {
+    return InAppWebViewSettings(
+      // Cross-platform settings
+      cacheEnabled: true,
+      clearCache: false,
+      javaScriptEnabled: true,
+      useOnDownloadStart: true,
+      userAgent: "random",
+      transparentBackground: true,
+      useShouldOverrideUrlLoading: true,
+      mediaPlaybackRequiresUserGesture: false,
+      preferredContentMode: UserPreferredContentMode.RECOMMENDED,
 
-        useShouldOverrideUrlLoading: true,
-        mediaPlaybackRequiresUserGesture: false,
+      // Android-specific settings
+      useHybridComposition: true,
+      domStorageEnabled: true,
+      databaseEnabled: true,
+      cacheMode: CacheMode.LOAD_DEFAULT,
+      forceDark: ForceDark.ON,
+      builtInZoomControls: false,
+      displayZoomControls: false,
+      hardwareAcceleration: true,
 
-        preferredContentMode: UserPreferredContentMode.RECOMMENDED,
-      ),
-      android: AndroidInAppWebViewOptions(
-        useHybridComposition: true,
-        domStorageEnabled: true,
-        databaseEnabled: true,
-        cacheMode: AndroidCacheMode.LOAD_DEFAULT,
-        forceDark: AndroidForceDark.FORCE_DARK_ON,
-
-        builtInZoomControls: false,
-        displayZoomControls: false,
-
-        hardwareAcceleration: true,
-      ),
-      ios: IOSInAppWebViewOptions(
-        allowsAirPlayForMediaPlayback: true,
-        allowsBackForwardNavigationGestures: true,
-        allowsLinkPreview: false,
-        ignoresViewportScaleLimits: false,
-      ),
+      // iOS-specific settings
+      allowsAirPlayForMediaPlayback: true,
+      allowsBackForwardNavigationGestures: true,
+      allowsLinkPreview: false,
+      ignoresViewportScaleLimits: false,
     );
   }
 
