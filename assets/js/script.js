@@ -1,7 +1,7 @@
 const SELECTORS = {
   ads: ".grid.grid-cols-1.md\\:grid-cols-2.md\\:gap-4.gap-4",
   bottomOverlay:
-    ".fixed.bottom-0.left-0.w-screen.h-\\[calc\\(100dvh\\)\\].md\\:h-screen.bg-base-bg\\/40.z-\\[208\\].flex.flex-col.justify-end.items-start",
+    ".fixed.bottom-0.left-0.w-screen.h-\\[calc\\(100dvh\\)\\].md\\:h-screen.bg-base-bg\\/40.flex.flex-col.justify-end.items-start",
   bottomContent:
     ".max-w-800.mx-auto.w-full.pb-12.lg\\:pb-12.relative.z-\\[207\\]",
   navbar:
