@@ -6,7 +6,7 @@ plugins {
 
 android {
     namespace = "com.shinigami.app"
-    compileSdk = 35  // Android 15 (API 35)
+    compileSdk = 36  // Compile with Android SDK 36 (required by shared_preferences_android)
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
