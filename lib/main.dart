@@ -58,6 +58,8 @@ class WebViewPage extends StatefulWidget {
 
 class _WebViewPageState extends State<WebViewPage> {
   late final PullToRefreshController pullToRefreshController;
+  late final InAppWebViewSettings _webViewSettings;
+  SharedPreferences? _prefs;
 
   static const String defaultUrl = "https://app.shinigami.asia/";
   static const Color backgroundColor = Color.fromRGBO(24, 24, 27, 1);
@@ -79,17 +81,21 @@ class _WebViewPageState extends State<WebViewPage> {
       onRefresh: _handleRefresh,
     );
 
+    _webViewSettings = _buildWebViewSettings();
     _initializeApp();
   }
 
   Future<void> _initializeApp() async {
-    await _loadSavedUrl();
+    _prefs = await SharedPreferences.getInstance();
+    final savedUrl = _prefs!.getString('webview_url') ?? defaultUrl;
 
-    _showFabTemporarily();
-
+    if (!mounted) return;
     setState(() {
+      currentUrl = savedUrl;
       isInitialized = true;
     });
+
+    _showFabTemporarily();
   }
 
   void _showFabTemporarily() {
@@ -108,18 +114,8 @@ class _WebViewPageState extends State<WebViewPage> {
     });
   }
 
-  Future<void> _loadSavedUrl() async {
-    final prefs = await SharedPreferences.getInstance();
-    final savedUrl = prefs.getString('webview_url');
-
-    setState(() {
-      currentUrl = savedUrl ?? defaultUrl;
-    });
-  }
-
   Future<void> _saveUrl(String url) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('webview_url', url);
+    await _prefs!.setString('webview_url', url);
     setState(() {
       currentUrl = url;
     });
@@ -228,25 +224,28 @@ class _WebViewPageState extends State<WebViewPage> {
     return InAppWebView(
       initialUrlRequest: URLRequest(url: WebUri(currentUrl!)),
       onWebViewCreated: WebViewHandler.setWebViewController,
-      initialSettings: _getWebViewSettings(),
+      initialSettings: _webViewSettings,
       pullToRefreshController: pullToRefreshController,
+      shouldOverrideUrlLoading: (controller, action) async {
+        return NavigationActionPolicy.ALLOW;
+      },
       onLoadStop: (controller, url) {
         pullToRefreshController.endRefreshing();
         WebViewHandler.loadAndInjectJavaScript();
-
-        _showFabTemporarily();
+      },
+      onLoadError: (controller, url, code, message) {
+        pullToRefreshController.endRefreshing();
       },
     );
   }
 
-  InAppWebViewSettings _getWebViewSettings() {
+  InAppWebViewSettings _buildWebViewSettings() {
     return InAppWebViewSettings(
       // Cross-platform settings
       cacheEnabled: true,
       clearCache: false,
       javaScriptEnabled: true,
       useOnDownloadStart: true,
-      userAgent: "random",
       transparentBackground: true,
       useShouldOverrideUrlLoading: true,
       mediaPlaybackRequiresUserGesture: false,
